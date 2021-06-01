@@ -47,8 +47,8 @@ ifndef fa
 endif
 
 #optional command for sam files
-ifdef sam
-	$(attempting to skip alignments given $(sam))
+ifdef paf
+	$(attempting to skip alignments given $(paf))
 endif
 
 #------------------------------------------------------------
@@ -68,16 +68,17 @@ $(name)_scaffolds.fa: $(fa)
 %.agp %-agp.fa : %_scaffolds.fa
 	perl $(ROOT_DIR)/bin/fatoagp.pl -f $*-agp.fa $< > $*.agp
 
-ifdef sam
-$(name)-agp.sam: $(sam)
+ifdef paf
+$(name)-agp.paf: $(paf)
 	ln -s $< $@
 else
-%-agp.sam: %_reference.fa %-agp.fa
-	minimap2 -ax asm10 -t $(t) $*_reference.fa $*-agp.fa > $@
+%-agp.paf: %_reference.fa %-agp.fa
+	minimap2 -cx asm10 -t $(t) $*_reference.fa $*-agp.fa > $@
 endif
 
-%.bed: %.sam
-	grep -v XA $< | grep -v '^@' | awk '{if($$5 > 50 || $$5 == "" ) print}' | perl $(ROOT_DIR)/bin/samToBed.pl > $@
+%.bed: %.paf
+       awk '$$12 >= 50 {print $$6"\t"$$8"\t"$$9"\t"$$1"\t"$$12"\t"$$5"\t"$$3"\t"$$4}' $< > $@
+
 
 %.conf %.karyotype %.rv.links %.fw.links %.seqOrder.txt: %.agp %-agp.bed %_reference.karyotype %_scaffolds.fa
 	perl $(ROOT_DIR)/bin/generateConf.pl -n $(ng) -m $(maxScaff) -r $(ROOT_DIR)/config/rawConf.conf -p $* -s $*_scaffolds.fa -b $*-agp.bed -a $*.agp -k $*_reference.karyotype -g $(gScaff)
