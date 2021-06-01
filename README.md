@@ -14,7 +14,6 @@ Example plot on a Drosophila assembly showing a misassembly (or possible chromos
 ### Requirements (for full pipeline):
 * [Circos and Circos tools](http://circos.ca/software/download/circos/) (Installation Options below)
 * [minimap2](https://github.com/lh3/minimap2) (currently included in repo, feel free to remove it)
-* [samtools](https://github.com/samtools/samtools) (assumes that this is in the path of the user)
 * GNU make
 
 ### Installing Circos
@@ -35,7 +34,7 @@ Perl Modules Needed (If downloading and installing Circos without a package mana
 * Set of scaffolds in fasta format
 * Reference genome in fasta format
 
-To generate a plot given these inputs, samtools and minimap2 must be in your path.
+To generate a plot given these inputs, minimap2 must be in your path.
 
 ### Usage:
 
@@ -48,6 +47,7 @@ Optional commands:
 ```
 sam=                #Specify an existing alignment of scafftigs to if they already exist (naming convention that fatoagp.pl produces must be consistent)
 ng=75               #use largest scaffolds that are equal to 75% of the genome 
+maxScaff=           #by default uses ng value, but can override to allow a maximum of N scaffolds
 maxGap=100000       #maximum alignment gap allowed to consider a region contiguous
 minBundleSize=50000 #minimum size of a contiguous region to render
 m=100000            #only use genomic reference chromosomes larger than this value

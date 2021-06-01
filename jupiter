@@ -26,7 +26,7 @@ mapping=asm5
 # meta rules
 #------------------------------------------------------------
 
-.PRECIOUS: %-agp.paf %.agp %.bed %.links.final %.fai
+.PRECIOUS: %-agp.paf %.agp %.bed %.links.final
 .PHONY: check-params generateplot
 
 default: generateplot
@@ -61,10 +61,6 @@ $(name)_reference.fa: $(ref)
 $(name)_scaffolds.fa: $(fa)
 	ln -s $< $@
 
-# index FASTA file
-%.fa.fai: %.fa
-	samtools faidx $<
-	
 %.agp %-agp.fa : %_scaffolds.fa
 	perl $(ROOT_DIR)/bin/fatoagp.pl -f $*-agp.fa $< > $*.agp
 
