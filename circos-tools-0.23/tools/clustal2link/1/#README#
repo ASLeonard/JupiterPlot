@@ -1,0 +1,13 @@
+One of the Circos tools is clustal2link, which parses clustal alignments and generates Circos input files to draw the alignments and coverage.
+
+You'll find this tool in the Circos installation directory under 
+
+# tools/clustal2link
+
+Let's quickly run it on the data and see what the image looks like.
+
+# #parse the alignment files
+# > ./run.sh
+# 
+# > cd circos
+# > circos

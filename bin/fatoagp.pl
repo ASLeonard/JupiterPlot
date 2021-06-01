@@ -69,7 +69,7 @@ while ($currentStr) {
 			print "N\t", $len, "\tscaffold\tyes\tpaired-ends\n";
 		}
 		else {
-			my $ctgid = 'contig' . $scafid . '_' . ( $i / 2 );
+			my $ctgid = $scafid . '_' . ( $i / 2 );
 
 			# component_type component_id
 			# component_beg component_end orientation

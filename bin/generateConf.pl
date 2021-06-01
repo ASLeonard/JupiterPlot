@@ -140,11 +140,14 @@ sub outputKaryotype {
 		}
 
 		#remove underscores
+        my $scafID = $scaffoldID;
+        $scafID =~ s/[_]//g;
 		$scaffolds{$scaffoldID} = "scaf" . $count;
 		$scaffoldIDMap{ "scaf" . $count } = $scaffoldID;
-		$karyotype->write( "chr - "
+		print $scafID;
+        $karyotype->write( "chr - "
 			  . $scaffolds{$scaffoldID}
-			  . " $scaffolds{$scaffoldID} 0 "
+			  . " $scafID 0 "
 			  . $scaffoldsSize{$scaffoldID}
 			  . " vvlgrey"
 			  . "\n" );
@@ -241,7 +244,7 @@ sub outputLinks {
 		chomp($line);
 		my @tempArray  = split( /\t/, $line );
 		my $scaffoldID = $tempArray[3];
-		$scaffoldID =~ s/^contig//;
+		$scaffoldID =~ s/^scaf//;
 		$scaffoldID =~ s/_\d+$//;
 		my $linkSize = $tempArray[7] - $tempArray[6];
 		if (   exists $scaffolds{$scaffoldID}
@@ -408,9 +411,8 @@ sub outputLinks {
 	}
 	print $fd $chrOrder[ scalar(@chrOrder) - 1 ] . "\n";
 	print STDERR $chrOrder[ scalar(@chrOrder) - 1 ] . "\n";
-
+    
 	foreach my $key (@chrOrder) {
-
 		#		$scaffoldFH->write( $key . "\t" . $chromosomes{$key} . "\n" );
 		if ( !exists $scaffoldOrder{$key} ) {
 			print STDERR $chromosomes{$key} . " has no alignments\n";
