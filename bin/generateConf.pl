@@ -16,6 +16,8 @@ my $numScaff      = 90;
 my $rawConf       = "rawConf.conf";
 my $prefix        = "circos";
 my $gScaff        = 1;
+my $alpha         = 5;
+my $labels        = "both";
 my $result        = GetOptions(
 	'k=s' => \$rawKaryotype,
 	's=s' => \$scaffoldFiles,
@@ -25,10 +27,13 @@ my $result        = GetOptions(
 	'a=s' => \$agpFile,
 	'r=s' => \$rawConf,
 	'p=s' => \$prefix,
-	'g=i' => \$gScaff
+	'g=i' => \$gScaff,
+	't=i' => \$alpha,
+	'l=s' => \$labels
 );
 
 my $outputkaryotype = $prefix . ".karyotype";
+my $percentCoverage = 0;
 
 $numScaff = $numScaff / 100;
 
@@ -48,6 +53,26 @@ my %scaffoldGaps;
 system( "cp " . $rawConf . " $prefix.conf -f" );
 system("sed -i -e 's/karyotype.txt/$prefix.karyotype/g' $prefix.conf");
 system("sed -i -e 's/links.txt/$prefix.links.final/g' $prefix.conf");
+#filter labels
+if ( $labels eq "ref" ) {
+	system(
+'sed -i -e \'s/label_format_str/eval( var(chr) =~ \/scaf(\\\d+)$\/ ? "": var(label) )/g\' '
+		  . $prefix
+		  . '.conf' );
+}
+elsif ( $labels eq "scaf" ) {
+	system(
+'sed -i -e \'s/label_format_str/eval( var(chr) !~ \/scaf(\\\d+)$\/ ? "": var(label) )/g\' '
+		  . $prefix
+		  . '.conf' );
+}
+else {
+	system(
+		'sed -i -e \'s/label_format.*//g\' '
+		  . $prefix . '.conf'
+	);
+}
+
 open( my $fd, ">>$prefix.conf" );
 
 #create karyotype file
@@ -148,6 +173,7 @@ sub outputKaryotype {
         $karyotype->write( "chr - "
 			  . $scaffolds{$scaffoldID}
 			  . " $scafID 0 "
+			  #. " $scaffoldID 0 "
 			  . $scaffoldsSize{$scaffoldID}
 			  . " vvlgrey"
 			  . "\n" );
@@ -161,6 +187,12 @@ sub outputKaryotype {
 		$count++;
 	}
 	print STDERR "Selecting " . $count . " scaffolds to render\n";
+	if ( $maxCount > 0 ) {
+		$percentCoverage = ( 100 * $scaffoldSum ) / $genomeSize;
+		print STDERR "Selected scaffolds cover genome by "
+		  . $percentCoverage
+		  . " percent\n";
+	}
 
 	#print out spacing information:
 	my $defaultSpacing = 0.002;
@@ -334,7 +366,9 @@ sub outputLinks {
 						  . ( $scafftigLocationsRV{$contigID} + $tempArray[6] )
 						  . " "
 						  . ( $scafftigLocationsRV{$contigID} + $tempArray[7] )
-						  . " color=$chrColorMap{$tempArray[0]}_a5\n" );
+						  . " color=$chrColorMap{$tempArray[0]}_a"
+						  . $alpha
+						  . "\n" );
 				}
 				else {
 					$linksRV->write( $refIDMap{ $tempArray[0] } . " "
@@ -344,7 +378,9 @@ sub outputLinks {
 						  . ( $scafftigLocationsRV{$contigID} + $tempArray[6] )
 						  . " "
 						  . ( $scafftigLocationsRV{$contigID} + $tempArray[7] )
-						  . " color=$chrColorMap{$tempArray[0]}_a5\n" );
+						  . " color=$chrColorMap{$tempArray[0]}_a"
+						  . $alpha
+						  . "\n" );
 				}
 			}
 			else {
@@ -356,7 +392,9 @@ sub outputLinks {
 						  . ( $scafftigLocationsFW{$contigID} + $tempArray[6] )
 						  . " "
 						  . ( $scafftigLocationsFW{$contigID} + $tempArray[7] )
-						  . " color=$chrColorMap{$tempArray[0]}_a5\n" );
+						  . " color=$chrColorMap{$tempArray[0]}_a"
+						  . $alpha
+						  . "\n" );
 				}
 				else {
 					$linksRV->write( $refIDMap{ $tempArray[0] } . " "
@@ -366,7 +404,9 @@ sub outputLinks {
 						  . ( $scafftigLocationsFW{$contigID} + $tempArray[6] )
 						  . " "
 						  . ( $scafftigLocationsFW{$contigID} + $tempArray[7] )
-						  . " color=$chrColorMap{$tempArray[0]}_a5\n" );
+						  . " color=$chrColorMap{$tempArray[0]}_a"
+						  . $alpha
+						  . "\n" );
 				}
 			}
 		}
@@ -376,7 +416,7 @@ sub outputLinks {
 	print STDERR "chromosomes_order = ";
 	print $fd "chromosomes_order = ";
 
-	my $scaffoldFH = new IO::File( ">" . $prefix . ".seqOrder.txt" );
+	my $scaffoldFH = new IO::File( ">" . $prefix . ".seqOrderX.txt" );
 
 	foreach my $key ( reverse(@chrOrder) ) {
 		if ( exists $scaffoldOrder{$key} ) {
@@ -386,6 +426,7 @@ sub outputLinks {
 				foreach my $scaffoldKey (@tempArray) {
 
 					#I:scaffold876:1
+					#ref5	X	scaf45	361699	-
 					$scaffoldFH->write(
 							$key . "\t"
 						  . $chromosomes{$key} . "\t"
@@ -437,7 +478,7 @@ sub outputLinks {
 sub median {
 	my @vals = sort { $a <=> $b } @_;
 	my $len  = @vals;
-	if ( $len % 2 )    #odd?
+	if ( $len % 2 )    #odd
 	{
 		return $vals[ int( $len / 2 ) ];
 	}
